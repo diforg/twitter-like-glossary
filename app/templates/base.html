@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Twitter Likes Archive{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1DA1F2;
+            --dark-bg: #0f1419;
+            --secondary-bg: #192734;
+            --text-color: #e1e8ed;
+            --muted-text: #71767b;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+        }
+        
+        .navbar {
+            background-color: var(--secondary-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar-brand {
+            color: var(--primary-color) !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: var(--text-color) !important;
+            margin-left: 1rem;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #1a91da;
+            border-color: #1a91da;
+        }
+        
+        .container-main {
+            max-width: 600px;
+            margin-top: 2rem;
+        }
+        
+        .tweet-card {
+            background-color: var(--secondary-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .tweet-card:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .tweet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .tweet-number {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .tweet-author-info {
+            flex: 1;
+            margin-left: 0.75rem;
+        }
+        
+        .author-name {
+            color: var(--text-color);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        
+        .author-name:hover {
+            text-decoration: underline;
+        }
+        
+        .author-handle {
+            color: var(--muted-text);
+            margin-left: 0.25rem;
+        }
+        
+        .verified-badge {
+            display: inline-block;
+            margin-left: 0.25rem;
+            color: var(--primary-color);
+        }
+        
+        .tweet-date {
+            color: var(--muted-text);
+            font-size: 0.875rem;
+            margin-left: 0.75rem;
+        }
+        
+        .tweet-text {
+            margin: 1rem 0;
+            color: var(--text-color);
+            line-height: 1.5;
+            word-wrap: break-word;
+            margin-left: 2.75rem;
+        }
+        
+        .tweet-media {
+            margin-top: 1rem;
+            margin-left: 2.75rem;
+        }
+        
+        .tweet-media img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 0.5rem;
+        }
+        
+        .pagination {
+            margin-top: 2rem;
+            justify-content: center;
+        }
+        
+        .page-link {
+            background-color: var(--secondary-bg);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+        }
+        
+        .page-link:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .stats {
+            color: var(--muted-text);
+            font-size: 0.875rem;
+            margin-left: 2.75rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+        }
+        
+        .login-card {
+            background-color: var(--secondary-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .alert {
+            background-color: rgba(244, 33, 30, 0.1);
+            border-color: rgba(244, 33, 30, 0.3);
+            color: #f5545a;
+        }
+        
+        .alert-success {
+            background-color: rgba(23, 191, 99, 0.1);
+            border-color: rgba(23, 191, 99, 0.3);
+            color: #17bf63;
+        }
+        
+        .refresh-status {
+            padding: 1rem;
+            background-color: rgba(29, 161, 242, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--muted-text);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">📚 Likes Archive</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    {% if session.get('access_token') %}
+                        <a class="nav-link" href="{{ url_for('main.likes') }}">My Likes</a>
+                        <a class="nav-link" href="{{ url_for('main.refresh_likes') }}">Refresh</a>
+                        <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container container-main">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

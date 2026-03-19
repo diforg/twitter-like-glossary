@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}My Likes - Twitter Likes Archive{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h2 style="margin-bottom: 1rem;">Your Liked Tweets</h2>
+    
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <div class="refresh-status">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>Total Likes: </strong><span id="total-count">{{ total_tweets }}</span>
+                <br>
+                <small id="last-updated" style="color: var(--muted-text);"></small>
+            </div>
+            <a href="{{ url_for('main.refresh_likes') }}" class="btn btn-primary btn-sm">
+                🔄 Refresh Likes
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if tweets %}
+    <!-- Tweets List -->
+    <div id="tweets-container">
+        {% for tweet in tweets %}
+            <div class="tweet-card">
+                <div class="tweet-header">
+                    <div style="display: flex; align-items: flex-start; flex: 1;">
+                        <div class="tweet-number">{{ tweet.sequence_number }}</div>
+                        <div class="tweet-author-info">
+                            <div>
+                                <a href="https://twitter.com/{{ tweet.author.username }}" target="_blank" class="author-name">
+                                    {{ tweet.author.name }}
+                                </a>
+                                {% if tweet.author.verified %}
+                                    <span class="verified-badge" title="Verified">✓</span>
+                                {% endif %}
+                                <span class="author-handle">@{{ tweet.author.username }}</span>
+                            </div>
+                            <div class="tweet-date">
+                                {{ tweet.created_at[:10] }}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="https://twitter.com/{{ tweet.author.username }}/status/{{ tweet.tweet_id }}" target="_blank" 
+                       style="color: var(--primary-color); text-decoration: none; margin-left: 0.5rem;">
+                        →
+                    </a>
+                </div>
+                
+                <div class="tweet-text">
+                    {{ tweet.text }}
+                </div>
+                
+                {% if tweet.media %}
+                    <div class="tweet-media">
+                        {% for media in tweet.media %}
+                            {% if media.type == 'photo' %}
+                                <img src="{{ media.url }}" alt="Tweet media" loading="lazy">
+                            {% elif media.type == 'video' or media.type == 'animated_gif' %}
+                                {% if media.preview_image_url %}
+                                    <img src="{{ media.preview_image_url }}" alt="Video thumbnail" loading="lazy">
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="stats">
+                    {% if tweet.metrics.like_count %}
+                        <span>❤️ {{ tweet.metrics.like_count }}</span>
+                    {% endif %}
+                    {% if tweet.metrics.retweet_count %}
+                        <span>🔄 {{ tweet.metrics.retweet_count }}</span>
+                    {% endif %}
+                    {% if tweet.metrics.reply_count %}
+                        <span>💬 {{ tweet.metrics.reply_count }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+        <nav aria-label="Page navigation" style="margin-top: 2rem;">
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.likes', page=page-1) }}">← Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">← Previous</span>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+                </li>
+                
+                {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.likes', page=page+1) }}">Next →</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next →</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <h3 style="color: var(--text-color);">No likes loaded yet</h3>
+        <p>{{ message or 'Click "Refresh Likes" to fetch your liked tweets from X.' }}</p>
+        <a href="{{ url_for('main.refresh_likes') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            🔄 Refresh Likes Now
+        </a>
+    </div>
+{% endif %}
+
+<script>
+    // Load and display last updated time
+    async function updateStatus() {
+        try {
+            const response = await fetch('{{ url_for("main.likes_status") }}');
+            const data = await response.json();
+            
+            if (data.last_updated) {
+                const date = new Date(data.last_updated);
+                const formatted = date.toLocaleString();
+                document.getElementById('last-updated').textContent = `Last updated: ${formatted}`;
+            }
+        } catch (error) {
+            console.error('Error fetching status:', error);
+        }
+    }
+    
+    updateStatus();
+    // Update every 30 seconds
+    setInterval(updateStatus, 30000);
+</script>
+{% endblock %}
